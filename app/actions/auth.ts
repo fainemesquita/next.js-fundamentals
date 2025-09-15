@@ -8,7 +8,7 @@ import {
   deleteSession,
 } from '@/lib/auth'
 import { getUserByEmail } from '@/lib/dal'
-import { mockDelay } from '@/lib/utils'
+// import { mockDelay } from '@/lib/utils'
 import { redirect } from 'next/navigation'
 
 // Define Zod schema for signin validation
@@ -39,7 +39,7 @@ export type ActionResponse = {
   error?: string
 }
 
-export const signin = async (formData: FormData): Promise<ActionResponse> => {
+export const signIn = async (formData: FormData): Promise<ActionResponse> => {
   try {
     const data = {
       email: formData.get('email') as string,
@@ -56,7 +56,7 @@ export const signin = async (formData: FormData): Promise<ActionResponse> => {
       }
     }
 
-    const user = await getUserByEmail()
+    const user = await getUserByEmail(data.email)
 
     if (!user) {
       return {
