@@ -37,3 +37,20 @@ export const getUserByEmail = async (email: string) => {
     }
 
 }
+
+export async function getIssues() {
+    await mockDelay(1000) // Simulate network delay
+        
+    try {
+        const result = await db.query.issues.findMany({
+        with: {
+            user: true, //TODO where: eq(users.email, email) to avoid fetching all user data
+        },
+        orderBy: (issues, { desc }) => [desc(issues.createdAt)],
+        })
+        return result
+    } catch (error) {
+        console.error('Error fetching issues:', error)
+        throw new Error('Failed to fetch issues')
+    }
+}
