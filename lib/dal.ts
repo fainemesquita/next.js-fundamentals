@@ -50,7 +50,7 @@ export async function getIssues() {
         const result = await db.query.issues.findMany({
         where: eq(issues.userId, currentUser.id), // Prevents user from fetching all user data
         with: {
-            user: true, 
+            user: true, // This block joins tables in the DB (User and Issue)
         },
         orderBy: (issues, { desc }) => [desc(issues.createdAt)],
         })
@@ -59,4 +59,21 @@ export async function getIssues() {
         console.error('Error fetching issues:', error)
         throw new Error('Failed to fetch issues')
     }
+}
+
+export const getIssue = async(id: number) => {
+    try {
+        await mockDelay(500) // Simulate network delay
+        const issue = await db.query.issues.findFirst({
+        where: eq(issues.id, id),
+        with: {
+            user: true,
+        },
+        })
+        return issue
+    } catch (e) {
+        console.error('Error fetching issue by id:', e)
+        return null
+    }
+    
 }
