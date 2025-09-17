@@ -42,9 +42,15 @@ export async function getIssues() {
     await mockDelay(1000) // Simulate network delay
         
     try {
+
+        const currentUser = await getCurrentUser()
+            if (!currentUser) {
+            throw new Error('Unauthorized')
+        }
         const result = await db.query.issues.findMany({
+        where: eq(issues.userId, currentUser.id), // Prevents user from fetching all user data
         with: {
-            user: true, //TODO where: eq(users.email, email) to avoid fetching all user data
+            user: true, 
         },
         orderBy: (issues, { desc }) => [desc(issues.createdAt)],
         })
