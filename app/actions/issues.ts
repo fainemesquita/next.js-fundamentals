@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/dal'
 import { z } from 'zod'
 import { mockDelay } from '@/lib/utils'
+import { revalidateTag } from 'next/cache'
 
 // Define Zod schema for issue validation
 const IssueSchema = z.object({
@@ -66,7 +67,7 @@ export const createIssue = async (data: IssueData) => {
       priority: validatedData.priority,
       userId: validatedData.userId,
     })
-
+    revalidateTag('issues-list') // Revalidate the issues list cache
     return { success: true, message: 'Issue created successfully' }
   } catch (error) {
     console.error('Error creating issue:', error)
@@ -121,7 +122,7 @@ export async function updateIssue(
 
     // Update issue
     await db.update(issues).set(updateData).where(eq(issues.id, id))
-
+    revalidateTag('issues-list') 
     return { success: true, message: 'Issue updated successfully' }
   } catch (error) {
     console.error('Error updating issue:', error)
@@ -144,7 +145,7 @@ export async function deleteIssue(id: number) {
 
     // Delete issue
     await db.delete(issues).where(eq(issues.id, id))
-
+    revalidateTag('issues-list') 
     return { success: true, message: 'Issue deleted successfully' }
   } catch (error) {
     console.error('Error deleting issue:', error)
@@ -155,3 +156,50 @@ export async function deleteIssue(id: number) {
     }
   }
 }
+
+// export async function deleteIssue(id: number) {
+//   try {
+//     await mockDelay(700)
+//     const user = await getCurrentUser()
+//     if (!user) {
+//       return {
+//         success: false,
+//         message: 'Unauthorized access',
+//         error: 'Unauthorized',
+//       }
+//     }
+
+//     // Check if the issue belongs to the current user
+//     const existingIssue = await db.query.issues.findFirst({
+//       where: eq(issues.id, id),
+//     })
+
+//     if (!existingIssue) {
+//       return {
+//         success: false,
+//         message: 'Issue not found',
+//         error: 'Issue not found',
+//       }
+//     }
+
+//     if (existingIssue.userId !== user.id) {
+//       return {
+//         success: false,
+//         message: 'Access denied - you can only delete your own issues',
+//         error: 'Forbidden',
+//       }
+//     }
+
+//     // Delete issue
+//     await db.delete(issues).where(eq(issues.id, id))
+
+//     return { success: true, message: 'Issue deleted successfully' }
+//   } catch (error) {
+//     console.error('Error deleting issue:', error)
+//     return {
+//       success: false,
+//       message: 'An error occurred while deleting the issue',
+//       error: 'Failed to delete issue',
+//     }
+//   }
+// }
