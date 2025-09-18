@@ -2,8 +2,10 @@ import { db } from '@/db'
 import { getSession } from './auth'
 import { eq } from 'drizzle-orm'
 import { cache } from 'react'
+import { unstable_cacheTag as cacheTag } from 'next/cache'
 import { issues, users } from '@/db/schema'
 import { mockDelay } from './utils'
+import { unstable_cacheTag } from 'next/cache'
 
 export const getCurrentUser = async () => {
     const session = await getSession()
@@ -39,16 +41,17 @@ export const getUserByEmail = async (email: string) => {
 }
 
 export async function getIssues() {
-    await mockDelay(1000) // Simulate network delay
-        
+    'use cache' // Prevents the dashboard from refetching issues on every render
+    // However, it can't be used with dynamic data such as user authentication (currentUser)
+    cacheTag('issues-list') // Invalidate this cache tag when issues are created/updated/deleted to refetch the list
     try {
-
-        const currentUser = await getCurrentUser()
-            if (!currentUser) {
-            throw new Error('Unauthorized')
-        }
+        await mockDelay(1000) // Simulate network delay
+        // const currentUser = await getCurrentUser()
+        //     if (!currentUser) {
+        //     throw new Error('Unauthorized')
+        // }
         const result = await db.query.issues.findMany({
-        where: eq(issues.userId, currentUser.id), // Prevents user from fetching all user data
+        //where: eq(issues.userId, currentUser.id), // Prevents user from fetching all user data
         with: {
             user: true, // This block joins tables in the DB (User and Issue)
         },
